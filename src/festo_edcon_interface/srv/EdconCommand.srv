@@ -1,0 +1,5 @@
+string command
+string data
+---
+bool success
+string answer

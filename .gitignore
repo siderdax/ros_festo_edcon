@@ -1,0 +1,10 @@
+.vscode
+ursim/program_storage/default.installation
+ursim/program_storage/default.variables
+ursim/program_storage/programs.UR5
+
+build
+install
+log
+
+**/__pycache__
