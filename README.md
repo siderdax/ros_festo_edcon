@@ -6,9 +6,16 @@ control CMMT serial using fest-edcon
 
 ## Build
 
-```bash
-colcon build --symlink-install
-```
+1. Install ROS2
+2. Clone git
+3. Install fest-edcon
+    ```bash
+    sudo apt install python3-pip
+    pip install festo-edcon
+4. Build Package
+    ```bash
+    colcon build --symlink-install
+    ```
 
 
 
