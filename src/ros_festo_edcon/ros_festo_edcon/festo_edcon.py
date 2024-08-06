@@ -61,7 +61,7 @@ class FestoEdcon(Node):
                 response.success = self.acknowledge_faults()
             elif request.command == "set_position":
                 req_dict = json.loads(request.data)
-                response.sucess = self.set_position(
+                response.success = self.set_position(
                     position=int(req_dict["position"]) if "position" in req_dict else 0,
                     velocity=int(req_dict["velocity"]) if "velocity" in req_dict else 0,
                     absolute=(
@@ -74,7 +74,7 @@ class FestoEdcon(Node):
                 record_number = (
                     int(req_dict["record_number"]) if "record_number" in req_dict else 1
                 )
-                response.sucess = self.run_record_task(
+                response.success = self.run_record_task(
                     record_number=record_number if record_number > 0 else 1,
                 )
                 response.answer = self.get_status()
@@ -123,7 +123,7 @@ class FestoEdcon(Node):
             position=position,
             velocity=velocity,
             absolute=absolute,
-            nonblocking=False,
+            nonblocking=True,
         )
 
     def stop_motion(self):
@@ -135,7 +135,7 @@ class FestoEdcon(Node):
         if self.mot_handler.fault_present():
             self.mot_handler.acknowledge_faults()
         self.mot_handler.enable_powerstage()
-        result = self.mot_handler.record_task(record_number, False)
+        result = self.mot_handler.record_task(record_number)
         return result
 
 def __exit__(self, ):
