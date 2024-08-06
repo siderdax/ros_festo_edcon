@@ -24,8 +24,17 @@ class FestoEdcon(Node):
         self.declare_parameter("edcon_config.host", "localhost")
 
         Logging()
-        self.modbus = ComModbus(self.edcon_config["host"])
-        self.mot_handler = MotionHandler(self.modbus)
+
+        if self.modbus == None:
+            try:
+                self.modbus = ComModbus(self.edcon_config["host"])
+
+                if self.modbus.modbus_client.connected:
+                    self.mot_handler = MotionHandler(self.modbus)
+            except Exception as ex:
+                self.get_logger().error(str(ex))
+
+        self.get_logger().info("Initializing service & topic")
 
         self.srv = self.create_service(
             EdconCommand, "festo_edcon_cmd", self.execute_command
@@ -45,7 +54,7 @@ class FestoEdcon(Node):
             else:
                 self.jog(False, False)
         except Exception as ex:
-            self.get_logger().error(ex)
+            self.get_logger().error(str(ex))
 
     def on_set_parameters(self, params: List[Parameter]):
         for param in params:
@@ -60,15 +69,25 @@ class FestoEdcon(Node):
                 self.edcon_config[config_name] = param.value
 
                 if config_name == "host":
-                    if self.modbus != None:
-                        self.modbus.shutdown()
-                    self.modbus = ComModbus(self.edcon_config["host"])
+                    try:
+                        if self.modbus != None:
+                            self.mot_handler.shutdown()
+                            self.modbus.shutdown()
+
+                        self.modbus = ComModbus(self.edcon_config["host"])
+
+                        if self.modbus.modbus_client.connected:
+                            self.mot_handler = MotionHandler(self.modbus)
+                    except Exception as ex:
+                        self.get_logger().error(str(ex))
 
         return SetParametersResult(successful=True)
 
     def execute_command(self, request, response):
         response.success = False
         response.answer = "command not found"
+
+        self.get_logger().info(f"command={request.command}, data={request.data}")
 
         try:
             if request.command == "get_status":
@@ -101,7 +120,7 @@ class FestoEdcon(Node):
                 response.success = self.stop_motion()
 
         except Exception as ex:
-            self.get_logger().error(ex)
+            self.get_logger().error(str(ex))
 
         return response
 
