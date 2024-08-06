@@ -10,6 +10,8 @@ from edcon.edrive.motion_handler import MotionHandler
 from edcon.utils.logging import Logging
 from festo_edcon_interface.srv import EdconCommand
 
+from std_msgs.msg import Int8
+
 
 class FestoEdcon(Node):
     edcon_config = {"host": "127.0.0.1"}
@@ -28,6 +30,22 @@ class FestoEdcon(Node):
         self.srv = self.create_service(
             EdconCommand, "festo_edcon_cmd", self.execute_command
         )
+
+        self.subscription = self.create_subscription(
+            Int8, "festo_edcon_jog", self.jog_callback, 10
+        )
+        self.subscription  # prevent unused variable warning
+
+    def jog_callback(self, msg):
+        try:
+            if msg.data < 0:
+                self.jog(False, True)
+            elif msg.data > 0:
+                self.jog(True, False)
+            else:
+                self.jog(False, False)
+        except Exception as ex:
+            self.get_logger().error(ex)
 
     def on_set_parameters(self, params: List[Parameter]):
         for param in params:
@@ -107,8 +125,8 @@ class FestoEdcon(Node):
     def acknowledge_faults(self):
         return self.mot_handler.acknowledge_faults()
 
-    def jog(self):
-        pass
+    def jog(self, pos, neg):
+        self.mot_handler.jog_task(pos, neg)
 
     def set_position(self, position, velocity, absolute):
         if self.mot_handler.fault_present():
@@ -138,8 +156,6 @@ class FestoEdcon(Node):
         result = self.mot_handler.record_task(record_number)
         return result
 
-def __exit__(self, ):
-    self.mot_handler()
 
 def main():
     rclpy.init()
