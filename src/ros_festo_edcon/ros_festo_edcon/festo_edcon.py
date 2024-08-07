@@ -105,7 +105,7 @@ class FestoEdcon(Node):
                         bool(req_dict["absolute"]) if "absolute" in req_dict else False
                     ),
                 )
-                response.answer = self.get_status()
+                response.answer = "set_position"
             elif request.command == "run_record_task":
                 req_dict = json.loads(request.data)
                 record_number = (
@@ -114,7 +114,7 @@ class FestoEdcon(Node):
                 response.success = self.run_record_task(
                     record_number=record_number if record_number > 0 else 1,
                 )
-                response.answer = self.get_status()
+                response.answer = "run_record_task"
             elif request.command == "stop_motion":
                 response.answer = "stop_motion"
                 response.success = self.stop_motion()
