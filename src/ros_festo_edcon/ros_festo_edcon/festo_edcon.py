@@ -128,16 +128,19 @@ class FestoEdcon(Node):
         status = {
             "current_position": 0,
             "current_velocity": 0,
-            "fault_present": False,
-            "fault_string": "Fault message string",
+            "fault_present": True,
+            "fault_string": "Failed to get status",
             "ready_for_motion": False,
         }
 
-        status["current_position"] = int(self.mot_handler.current_position())
-        status["current_velocity"] = int(self.mot_handler.current_velocity())
-        status["fault_present"] = self.mot_handler.fault_present()
-        status["fault_string"] = str(self.mot_handler.fault_string())
-        status["ready_for_motion"] = self.mot_handler.ready_for_motion()
+        try:
+            status["current_position"] = int(self.mot_handler.current_position())
+            status["current_velocity"] = int(self.mot_handler.current_velocity())
+            status["fault_present"] = self.mot_handler.fault_present()
+            status["fault_string"] = str(self.mot_handler.fault_string())
+            status["ready_for_motion"] = self.mot_handler.ready_for_motion()
+        except Exception as ex:
+            self.get_logger().error(str(ex))
 
         return json.dumps(status)
 
