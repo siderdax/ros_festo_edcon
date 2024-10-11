@@ -26,13 +26,7 @@ class FestoEdcon(Node):
         Logging()
 
         if self.modbus == None:
-            try:
-                self.modbus = ComModbus(self.edcon_config["host"])
-
-                if self.modbus.modbus_client.connected:
-                    self.mot_handler = MotionHandler(self.modbus)
-            except Exception as ex:
-                self.get_logger().error(str(ex))
+            self.connect_modbus()
 
         self.get_logger().info("Initializing service & topic")
 
@@ -44,6 +38,23 @@ class FestoEdcon(Node):
             Int8, "festo_edcon_jog", self.jog_callback, 10
         )
         self.subscription  # prevent unused variable warning
+
+    def connect_modbus(self):
+        try:
+            self.modbus = ComModbus(self.edcon_config["host"])
+
+            if self.modbus.modbus_client.connected:
+                self.mot_handler = MotionHandler(self.modbus)
+
+                if self.mot_handler.fault_present():
+                    self.mot_handler.acknowledge_faults()
+
+                self.mot_handler.enable_powerstage()
+
+                if not self.mot_handler.referenced():
+                    self.mot_handler.referencing_task()
+        except Exception as ex:
+            self.get_logger().error(str(ex))
 
     def jog_callback(self, msg):
         try:
@@ -74,10 +85,7 @@ class FestoEdcon(Node):
                             self.mot_handler.shutdown()
                             self.modbus.shutdown()
 
-                        self.modbus = ComModbus(self.edcon_config["host"])
-
-                        if self.modbus.modbus_client.connected:
-                            self.mot_handler = MotionHandler(self.modbus)
+                        self.connect_modbus()
                     except Exception as ex:
                         self.get_logger().error(str(ex))
 
@@ -148,16 +156,16 @@ class FestoEdcon(Node):
         return self.mot_handler.acknowledge_faults()
 
     def jog(self, pos, neg):
-        self.mot_handler.jog_task(pos, neg)
+        self.mot_handler.jog_task(pos, neg, 0.2)
 
     def set_position(self, position, velocity, absolute):
         if self.mot_handler.fault_present():
             self.mot_handler.acknowledge_faults()
 
-        self.mot_handler.enable_powerstage()
+            self.mot_handler.enable_powerstage()
 
-        if not self.mot_handler.referenced():
-            self.mot_handler.referencing_task()
+            if not self.mot_handler.referenced():
+                self.mot_handler.referencing_task()
 
         return self.mot_handler.position_task(
             position=position,
@@ -174,7 +182,8 @@ class FestoEdcon(Node):
     def run_record_task(self, record_number):
         if self.mot_handler.fault_present():
             self.mot_handler.acknowledge_faults()
-        self.mot_handler.enable_powerstage()
+            self.mot_handler.enable_powerstage()
+
         result = self.mot_handler.record_task(record_number)
         return result
 

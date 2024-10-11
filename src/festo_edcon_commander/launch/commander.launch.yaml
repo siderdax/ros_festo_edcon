@@ -1,0 +1,73 @@
+launch:
+- arg:
+    name: "gripper_host"
+    default: "localhost"
+- arg:
+    name: "spinner_host"
+    default: "localhost"
+- arg:
+    name: "mqtt_host"
+    default: "localhost"
+- arg:
+    name: "mqtt_port"
+    default: "1883"
+
+- node:
+    namespace: "edcon_gripper"
+    pkg: "ros_festo_edcon"
+    exec: "edcon"
+    param:
+    - 
+        name: "edcon_config.host"
+        value: "$(var gripper_host)"
+
+- node:
+    namespace: "edcon_gripper"
+    pkg: "festo_edcon_commander"
+    exec: "commander"
+    param:
+    - 
+        name: "mqtt_config.host"
+        value: "$(var mqtt_host)"
+    -
+        name: "mqtt_config.port"
+        value: "$(var mqtt_port)"
+    -
+        name: "mqtt_config.command_topic"
+        value: "gripperEdconCommand"
+    -
+        name: "mqtt_config.jog_topic"
+        value: "gripperEdconJog"
+    -
+        name: "mqtt_config.result_topic"
+        value: "gripperEdconResult"
+
+- node:
+    namespace: "edcon_spinner"
+    pkg: "ros_festo_edcon"
+    exec: "edcon"
+    param:
+    - 
+        name: "edcon_config.host"
+        value: "$(var spinner_host)"
+
+- node:
+    namespace: "edcon_spinner"
+    pkg: "festo_edcon_commander"
+    exec: "commander"
+    param:
+    - 
+        name: "mqtt_config.host"
+        value: "$(var mqtt_host)"
+    -
+        name: "mqtt_config.port"
+        value: "$(var mqtt_port)"
+    -
+        name: "mqtt_config.command_topic"
+        value: "spinnerEdconCommand"
+    -
+        name: "mqtt_config.jog_topic"
+        value: "spinnerEdconJog"
+    -
+        name: "mqtt_config.result_topic"
+        value: "spinnerEdconResult"
