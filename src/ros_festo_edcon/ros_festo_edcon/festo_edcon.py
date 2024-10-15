@@ -153,7 +153,11 @@ class FestoEdcon(Node):
         return json.dumps(status)
 
     def acknowledge_faults(self):
-        return self.mot_handler.acknowledge_faults()
+        self.mot_handler.acknowledge_faults()
+        self.mot_handler.enable_powerstage()
+
+        if not self.mot_handler.referenced():
+            self.mot_handler.referencing_task()
 
     def jog(self, pos, neg):
         self.mot_handler.jog_task(pos, neg, 0.2)
@@ -183,6 +187,9 @@ class FestoEdcon(Node):
         if self.mot_handler.fault_present():
             self.mot_handler.acknowledge_faults()
             self.mot_handler.enable_powerstage()
+
+            if not self.mot_handler.referenced():
+                self.mot_handler.referencing_task()
 
         result = self.mot_handler.record_task(record_number)
         return result
